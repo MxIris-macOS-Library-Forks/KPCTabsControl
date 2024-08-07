@@ -81,6 +81,7 @@ open class TabsControl: NSControl, NSTextDelegate {
         self.scrollView.translatesAutoresizingMaskIntoConstraints = true
 
         self.tabsView = NSView(frame: self.scrollView.bounds)
+        self.tabsView.autoresizingMask = [NSView.AutoresizingMask.width, NSView.AutoresizingMask.height]
         self.scrollView.documentView = self.tabsView
 
         self.addSubview(self.scrollView)
@@ -381,8 +382,16 @@ open class TabsControl: NSControl, NSTextDelegate {
 
     // MARK: - Selection
 
-    @objc fileprivate func selectTab(_ sender: AnyObject?) {
-        guard let button = sender as? TabButton
+    @objc fileprivate func selectTab(_ sender: Any?) {
+        var button: TabButton?
+        
+        if let buttonSender = sender as? TabButton {
+            button = buttonSender
+        } else if let index = sender as? Int {
+            button = self.tabButtons[safe: index]
+        }
+        
+        guard let button = button
             , button.isEnabled
             else { return }
 
@@ -394,8 +403,10 @@ open class TabsControl: NSControl, NSTextDelegate {
             NSApp.sendAction(action, to: target, from: self)
         }
 
-        NotificationCenter.default.post(name: Notification.Name(rawValue: TabsControlSelectionDidChangeNotification), object: self)
-        self.delegate?.tabsControlDidChangeSelection?(self, item: button.representedObject!)
+        if sender is TabButton {
+            NotificationCenter.default.post(name: Notification.Name(rawValue: TabsControlSelectionDidChangeNotification), object: self)
+            self.delegate?.tabsControlDidChangeSelection?(self, item: button.representedObject!)
+        }
 
         guard let currentEvent = NSApp.currentEvent else { return }
 
@@ -447,8 +458,7 @@ open class TabsControl: NSControl, NSTextDelegate {
      - parameter index: An integer indicating the index of the item to be selected.
      */
     open func selectItemAtIndex(_ index: Int) {
-        guard let button = self.tabButtons[safe: index] else { return }
-        self.selectTab(button)
+        self.selectTab(index)
     }
 
     fileprivate func updateButtonStatesForSelection() {
