@@ -202,6 +202,8 @@ open class TabsControl: NSControl, NSTextDelegate {
             buttonWidth = fullWidth
         case .flexible(let minWidth, let maxWidth):
             buttonWidth = max(minWidth, min(maxWidth, fullWidth))
+        case .fixed(let width):
+            buttonWidth = width
         }
 
         var buttonX = CGFloat(0)
