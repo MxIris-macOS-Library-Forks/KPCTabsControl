@@ -49,6 +49,7 @@ public enum TabPosition {
 public enum TabWidth {
     case full
     case flexible(min: CGFloat, max: CGFloat)
+    case fixed(width: CGFloat)
 }
 
 /**
