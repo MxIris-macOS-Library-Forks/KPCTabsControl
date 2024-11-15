@@ -60,43 +60,55 @@ class PaneViewController: NSViewController, TabsControlDataSource, TabsControlDe
         return self.items.count
     }
 
-    func tabsControl(_ control: TabsControl, itemAtIndex index: Int) -> AnyObject {
+    func tabsControl(_ control: TabsControl, itemAtIndex index: Int) -> Any {
         return self.items[index]
     }
 
-    func tabsControl(_ control: TabsControl, titleForItem item: AnyObject) -> String {
+    func tabsControl(_ control: TabsControl, titleForItem item: Any) -> String {
         return (item as! Item).title
     }
 
     // MARK: TabsControlDataSource : Optionals
 
-    func tabsControl(_ control: TabsControl, menuForItem item: AnyObject) -> NSMenu? {
+    func tabsControl(_ control: TabsControl, menuForItem item: Any) -> NSMenu? {
         return (item as! Item).menu
     }
 
-    func tabsControl(_ control: TabsControl, iconForItem item: AnyObject) -> NSImage? {
+    func tabsControl(_ control: TabsControl, iconForItem item: Any) -> NSImage? {
         return (item as! Item).icon
     }
 
-    func tabsControl(_ control: TabsControl, titleAlternativeIconForItem item: AnyObject) -> NSImage? {
+    func tabsControl(_ control: TabsControl, titleAlternativeIconForItem item: Any) -> NSImage? {
         return (item as! Item).altIcon
     }
 
     // MARK: TabsControlDelegate
 
-    func tabsControl(_ control: TabsControl, canReorderItem item: AnyObject) -> Bool {
+    func tabsControl(_ control: TabsControl, canReorderItem item: Any) -> Bool {
         return true
     }
 
-    func tabsControl(_ control: TabsControl, didReorderItems items: [AnyObject]) {
+    func tabsControl(_ control: TabsControl, didReorderItems items: [Any]) {
         self.items = items.map { $0 as! Item }
     }
 
-    func tabsControl(_ control: TabsControl, canEditTitleOfItem: AnyObject) -> Bool {
-        return true
+    func tabsControl(_ control: TabsControl, canEditTitleOfItem: Any) -> Bool {
+        return false
     }
 
-    func tabsControl(_ control: TabsControl, setTitle newTitle: String, forItem item: AnyObject) {
+    func tabsControl(_ control: TabsControl, canCloseItem item: Any) -> Bool {
+        true
+    }
+    
+    func tabsControl(_ control: TabsControl, closeIconForItem item: Any) -> NSImage? {
+        .init(systemSymbolName: "xmark", accessibilityDescription: nil)
+    }
+    
+    func tabsControl(_ control: TabsControl, closePositionForItem item: Any) -> ClosePosition {
+        .left
+    }
+    
+    func tabsControl(_ control: TabsControl, setTitle newTitle: String, forItem item: Any) {
         let typedItem = item as! Item
         let titles = self.items.map { $0.title }
         let index = titles.firstIndex(of: typedItem.title)!
@@ -106,7 +118,7 @@ class PaneViewController: NSViewController, TabsControlDataSource, TabsControlDe
         self.items.replaceSubrange(range, with: [newItem])
     }
 
-    func tabsControl(_ control: TabsControl, canSelectItem item: AnyObject) -> Bool {
+    func tabsControl(_ control: TabsControl, canSelectItem item: Any) -> Bool {
         return (item as! Item).selectable
     }
 }

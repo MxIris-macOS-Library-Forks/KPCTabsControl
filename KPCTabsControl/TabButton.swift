@@ -9,147 +9,167 @@
 import AppKit
 
 open class TabButton: NSButton {
+    private var closeButton: NSButton?
+    private var iconView: NSImageView?
+    private var alternativeTitleIconView: NSImageView?
+    private var trackingArea: NSTrackingArea?
 
-    fileprivate var iconView: NSImageView?
-    fileprivate var alternativeTitleIconView: NSImageView?
-    fileprivate var trackingArea: NSTrackingArea?
+    private var tabButtonCell: TabButtonCell
 
-    fileprivate var tabButtonCell: TabButtonCell? {
-        get { return self.cell as? TabButtonCell }
+    open var item: Any? {
+        get { cell?.representedObject }
+        set { cell?.representedObject = newValue }
     }
 
-    open var item: AnyObject? {
-        get { return self.cell?.representedObject as AnyObject? }
-        set { self.cell?.representedObject = newValue }
-    }
-
-    open var style: Style! {
-        didSet { self.tabButtonCell?.style = self.style }
+    open var style: Style {
+        didSet { tabButtonCell.style = style }
     }
 
     /// The button is aware of its last known index in the tab bar.
-    var index: Int?
+    var index: Int
 
-    open var buttonPosition: TabPosition! {
-        get { return tabButtonCell?.buttonPosition }
-        set { self.tabButtonCell?.buttonPosition = newValue }
+    open var buttonPosition: TabPosition {
+        get { tabButtonCell.buttonPosition }
+        set { tabButtonCell.buttonPosition = newValue }
     }
 
-    open var representedObject: AnyObject? {
-        get { return self.tabButtonCell?.representedObject as AnyObject? }
-        set { self.tabButtonCell?.representedObject = newValue }
+    open var representedObject: Any? {
+        get { tabButtonCell.representedObject }
+        set { tabButtonCell.representedObject = newValue }
     }
 
     open var editable: Bool {
-        get { return self.tabButtonCell?.isEditable ?? false }
-        set { self.tabButtonCell?.isEditable = newValue }
+        get { tabButtonCell.isEditable }
+        set { tabButtonCell.isEditable = newValue }
     }
 
+    open var closePosition: ClosePosition? {
+        didSet { tabButtonCell.closePosition = closePosition }
+    }
+    
+    open var closeIcon: NSImage? {
+        didSet {
+            if closeIcon != nil && closeButton == nil {
+                let closeButton = NSButton()
+                closeButton.isBordered = false
+                closeButton.alphaValue = 0
+                addSubview(closeButton)
+                self.closeButton = closeButton
+            } else if closeIcon == nil, closeButton != nil {
+                closeButton?.removeFromSuperview()
+                self.closeButton = nil
+            }
+            closeButton?.image = closeIcon
+            needsDisplay = true
+        }
+    }
+    
     open var icon: NSImage? {
         didSet {
-            if self.icon != nil && self.iconView == nil {
-                self.iconView = NSImageView(frame: NSRect.zero)
-                self.iconView?.imageFrameStyle = .none
-                self.addSubview(self.iconView!)
-            } else if self.icon == nil && self.iconView != nil {
-                self.iconView?.removeFromSuperview()
-                self.iconView = nil
+            if icon != nil && iconView == nil {
+                let iconView = NSImageView(frame: .zero)
+                iconView.imageFrameStyle = .none
+                addSubview(iconView)
+                self.iconView = iconView
+            } else if icon == nil && iconView != nil {
+                iconView?.removeFromSuperview()
+                iconView = nil
             }
-            self.iconView?.image = self.icon
-            self.needsDisplay = true
+            iconView?.image = icon
+            needsDisplay = true
         }
     }
 
     open var alternativeTitleIcon: NSImage? {
         didSet {
-            self.tabButtonCell?.hasTitleAlternativeIcon = (self.alternativeTitleIcon != nil)
+            tabButtonCell.hasTitleAlternativeIcon = (alternativeTitleIcon != nil)
 
-            if self.alternativeTitleIcon != nil && self.alternativeTitleIconView == nil {
-                self.alternativeTitleIconView = NSImageView(frame: NSRect.zero)
-                self.alternativeTitleIconView?.imageFrameStyle = .none
-                self.addSubview(self.alternativeTitleIconView!)
-            } else if self.alternativeTitleIcon == nil && self.alternativeTitleIconView != nil {
-                self.alternativeTitleIconView?.removeFromSuperview()
-                self.alternativeTitleIconView = nil
+            if alternativeTitleIcon != nil && alternativeTitleIconView == nil {
+                let alternativeTitleIconView = NSImageView(frame: .zero)
+                alternativeTitleIconView.imageFrameStyle = .none
+                addSubview(alternativeTitleIconView)
+                self.alternativeTitleIconView = alternativeTitleIconView
+            } else if alternativeTitleIcon == nil && alternativeTitleIconView != nil {
+                alternativeTitleIconView?.removeFromSuperview()
+                alternativeTitleIconView = nil
             }
-            self.alternativeTitleIconView?.image = self.alternativeTitleIcon
-            self.needsDisplay = true
+            alternativeTitleIconView?.image = alternativeTitleIcon
+            needsDisplay = true
         }
     }
 
     // MARK: - Init
 
-    override init(frame frameRect: NSRect) {
-        super.init(frame: frameRect)
-        self.cell = TabButtonCell(textCell: "")
-    }
-
-    required public init?(coder: NSCoder) {
+    @available(*, unavailable)
+    public required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    init(index: Int, item: AnyObject, target: AnyObject?, action: Selector, style: Style) {
-        super.init(frame: NSRect.zero)
-
+    init(index: Int, item: Any?, target: AnyObject?, action: Selector?, style: Style) {
         self.index = index
         self.style = style
+        self.tabButtonCell = TabButtonCell(textCell: "", style: style)
+        super.init(frame: .zero)
 
-        let tabCell = TabButtonCell(textCell: "")
+        tabButtonCell.representedObject = item
+        tabButtonCell.imagePosition = .noImage
 
-        tabCell.representedObject = item
-        tabCell.imagePosition = .noImage
+        tabButtonCell.target = target
+        tabButtonCell.action = action
 
-        tabCell.target = target
-        tabCell.action = action
-        tabCell.style = style
-
-        tabCell.sendAction(on: NSEvent.EventTypeMask(rawValue: UInt64(Int(NSEvent.EventTypeMask.leftMouseDown.rawValue))))
-        self.cell = tabCell
+        tabButtonCell.sendAction(on: .leftMouseDown)
+        self.cell = tabButtonCell
     }
 
-    override open func copy() -> Any {
-        let copy = TabButton(frame: self.frame)
-        copy.cell = self.cell?.copy() as? NSCell
-        copy.icon = self.icon
-        copy.style = self.style
-        copy.alternativeTitleIcon = self.alternativeTitleIcon
-        copy.state = self.state
-        copy.index = self.index
+    open override func copy() -> Any {
+        let copy = TabButton(index: index, item: nil, target: nil, action: nil, style: style)
+        copy.frame = frame
+        copy.cell = cell?.copy() as? NSCell
+        copy.icon = icon
+        copy.closeIcon = closeIcon
+        copy.closePosition = closePosition
+        copy.alternativeTitleIcon = alternativeTitleIcon
+        copy.state = state
         return copy
     }
 
     open override var menu: NSMenu? {
-        get { return self.cell?.menu }
+        get { cell?.menu }
         set {
-            self.cell?.menu = newValue
-            self.updateTrackingAreas()
+            cell?.menu = newValue
+            updateTrackingAreas()
         }
     }
 
     // MARK: - Drawing
 
     open override func updateTrackingAreas() {
-        if let ta = self.trackingArea {
-            self.removeTrackingArea(ta)
+        if let trackingArea = trackingArea {
+            removeTrackingArea(trackingArea)
         }
 
-        let item: AnyObject? = self.cell?.representedObject as AnyObject?
+        let item = cell?.representedObject
 
-        let userInfo: [String: AnyObject]? = (item != nil) ? ["item": item!] : nil
-        self.trackingArea = NSTrackingArea(rect: self.bounds,
-                                           options: [NSTrackingArea.Options.mouseEnteredAndExited, NSTrackingArea.Options.activeInActiveApp, NSTrackingArea.Options.inVisibleRect],
-                                           owner: self, userInfo: userInfo)
+        let userInfo: [String: Any]? = item.map { ["item": $0] }
 
-        self.addTrackingArea(self.trackingArea!)
+        let trackingArea = NSTrackingArea(
+            rect: bounds,
+            options: [.mouseEnteredAndExited, .activeInActiveApp, .inVisibleRect],
+            owner: self,
+            userInfo: userInfo
+        )
+        self.trackingArea = trackingArea
 
-        if let w = self.window, let e = NSApp.currentEvent {
-            let mouseLocation = w.mouseLocationOutsideOfEventStream
-            let convertedMouseLocation = self.convert(mouseLocation, from: nil)
+        addTrackingArea(trackingArea)
 
-            if self.bounds.contains(convertedMouseLocation) {
-                self.mouseEntered(with: e)
+        if let window = window, let event = NSApp.currentEvent {
+            let mouseLocation = window.mouseLocationOutsideOfEventStream
+            let convertedMouseLocation = convert(mouseLocation, from: nil)
+
+            if bounds.contains(convertedMouseLocation) {
+                mouseEntered(with: event)
             } else {
-                self.mouseExited(with: e)
+                mouseExited(with: event)
             }
         }
 
@@ -158,62 +178,68 @@ open class TabButton: NSButton {
 
     open override func mouseEntered(with theEvent: NSEvent) {
         super.mouseEntered(with: theEvent)
-        self.needsDisplay = true
+        needsDisplay = true
+        closeButton?.animator().alphaValue = 1
     }
 
     open override func mouseExited(with theEvent: NSEvent) {
         super.mouseExited(with: theEvent)
-        self.needsDisplay = true
+        needsDisplay = true
+        closeButton?.animator().alphaValue = 0
     }
 
     open override func mouseDown(with theEvent: NSEvent) {
         super.mouseDown(with: theEvent)
-        if self.isEnabled == false {
+        if isEnabled == false {
             NSSound.beep()
         }
     }
 
     open override func resetCursorRects() {
-        self.addCursorRect(self.bounds, cursor: NSCursor.arrow)
+        addCursorRect(bounds, cursor: NSCursor.arrow)
     }
 
     open override func draw(_ dirtyRect: NSRect) {
+        let scale: CGFloat = (layer != nil) ? layer!.contentsScale : 1.0
+        if let closePosition {
+            let closeButtonFrame = style.closeButtonFrame(tabRect: bounds, atPosition: closePosition)
+            closeButton?.frame = closeButtonFrame
+            if let closeIcon, closeIcon.size.width > closeButtonFrame.height * scale {
+                let smallIcon = NSImage(size: closeButtonFrame.size)
+                smallIcon.addRepresentation(NSBitmapImageRep(data: closeIcon.tiffRepresentation!)!)
+                closeButton?.image = smallIcon
+            }
+        }
+        let iconFrames = style.iconFrames(tabRect: bounds, closePosition: closePosition)
+        iconView?.frame = iconFrames.iconFrame
+        alternativeTitleIconView?.frame = iconFrames.alternativeTitleIconFrame
 
-        guard let tabButtonCell = self.tabButtonCell
-            else { assertionFailure("TabButtonCell expected in drawRect(_:)"); return }
-
-        let iconFrames = self.style.iconFrames(tabRect: self.frame)
-        self.iconView?.frame = iconFrames.iconFrame
-        self.alternativeTitleIconView?.frame = iconFrames.alternativeTitleIconFrame
-
-        let scale: CGFloat = (self.layer != nil) ? self.layer!.contentsScale : 1.0
-
-        if self.icon?.size.width > (iconFrames.iconFrame).height*scale {
+        if let icon, icon.size.width > (iconFrames.iconFrame).height * scale {
             let smallIcon = NSImage(size: iconFrames.iconFrame.size)
-            smallIcon.addRepresentation(NSBitmapImageRep(data: self.icon!.tiffRepresentation!)!)
-            self.iconView?.image = smallIcon
+            smallIcon.addRepresentation(NSBitmapImageRep(data: icon.tiffRepresentation!)!)
+            iconView?.image = smallIcon
         }
 
-        if self.alternativeTitleIcon?.size.width > (iconFrames.alternativeTitleIconFrame).height*scale {
+        if let alternativeTitleIcon, alternativeTitleIcon.size.width > (iconFrames.alternativeTitleIconFrame).height * scale {
             let smallIcon = NSImage(size: iconFrames.alternativeTitleIconFrame.size)
-            smallIcon.addRepresentation(NSBitmapImageRep(data: self.alternativeTitleIcon!.tiffRepresentation!)!)
-            self.alternativeTitleIconView?.image = smallIcon
+            smallIcon.addRepresentation(NSBitmapImageRep(data: alternativeTitleIcon.tiffRepresentation!)!)
+            alternativeTitleIconView?.image = smallIcon
         }
 
-        let hasRoom = tabButtonCell.hasRoomToDrawFullTitle(inRect: self.bounds)
-        self.alternativeTitleIconView?.isHidden = hasRoom
-        self.toolTip = (hasRoom == true) ? nil : self.title
+        let hasRoom = tabButtonCell.hasRoomToDrawFullTitle(inRect: bounds)
+        alternativeTitleIconView?.isHidden = hasRoom
+        toolTip = (hasRoom == true) ? nil : title
 
         super.draw(dirtyRect)
     }
 
     // MARK: - Editing
 
-    internal func edit(fieldEditor: NSText, delegate: NSTextDelegate) {
-        self.tabButtonCell?.edit(fieldEditor: fieldEditor, inView: self, delegate: delegate)
+    func edit(fieldEditor: NSText, delegate: NSTextDelegate) {
+        tabButtonCell.edit(fieldEditor: fieldEditor, inView: self, delegate: delegate)
     }
 
-    internal func finishEditing(fieldEditor: NSText, newValue: String) {
-        self.tabButtonCell?.finishEditing(fieldEditor: fieldEditor, newValue: newValue)
+    func finishEditing(fieldEditor: NSText, newValue: String) {
+        tabButtonCell.finishEditing(fieldEditor: fieldEditor, newValue: newValue)
     }
 }

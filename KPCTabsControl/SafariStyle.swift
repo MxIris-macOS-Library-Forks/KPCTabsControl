@@ -22,7 +22,7 @@ public struct SafariStyle: ThemedStyle {
     }
 
     // There is no icons in Safari tabs. Here we force the absence of icon, even if some are provided.
-    public func iconFrames(tabRect rect: NSRect) -> IconFrames {
+    public func iconFrames(tabRect rect: NSRect, closePosition: ClosePosition?) -> IconFrames {
         return (NSRect.zero, NSRect.zero)
     }
 

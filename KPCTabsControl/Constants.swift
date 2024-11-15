@@ -40,6 +40,13 @@ public enum TabPosition {
     }
 }
 
+@objc
+public enum ClosePosition: Int {
+    case left
+    case right
+}
+
+
 /**
  The tab width modes.
  

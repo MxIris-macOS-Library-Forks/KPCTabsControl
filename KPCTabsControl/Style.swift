@@ -21,12 +21,15 @@ public protocol Style {
     func tabButtonOffset(position: TabPosition) -> Offset
     func tabButtonBorderMask(_ position: TabPosition) -> BorderMask?
 
+    // Close Button
+    func closeButtonFrame(tabRect rect: NSRect, atPosition position: ClosePosition) -> NSRect
+    
     // Tab Button Titles
-    func iconFrames(tabRect rect: NSRect) -> IconFrames
-    func titleRect(title: NSAttributedString, inBounds rect: NSRect, showingIcon: Bool) -> NSRect
+    func iconFrames(tabRect rect: NSRect, closePosition: ClosePosition?) -> IconFrames
+    func titleRect(title: NSAttributedString, inBounds rect: NSRect, showingIcon: Bool, closePosition: ClosePosition?) -> NSRect
     func titleEditorSettings() -> TitleEditorSettings
     func attributedTitle(content: String, selectionState: TabSelectionState) -> NSAttributedString
-
+    
     // Tabs Control
     var tabsControlRecommendedHeight: CGFloat { get }
     func tabsControlBorderMask() -> BorderMask?

@@ -26,7 +26,7 @@ import AppKit
      
      - returns: An instance of an object representing the tab.
      */
-    func tabsControl(_ control: TabsControl, itemAtIndex index: Int) -> AnyObject
+    func tabsControl(_ control: TabsControl, itemAtIndex index: Int) -> Any
 
     /**
      Return the title for the tab of the given item
@@ -36,7 +36,7 @@ import AppKit
      
      - returns: A string to be used as title of the tab.
      */
-    func tabsControl(_ control: TabsControl, titleForItem item: AnyObject) -> String
+    func tabsControl(_ control: TabsControl, titleForItem item: Any) -> String
 
     /**
      If any, returns a menu for the tab, to be place to the right side of it. It is your responsability to fully
@@ -47,7 +47,7 @@ import AppKit
      
      - returns: A menu instance.
      */
-    @objc optional func tabsControl(_ control: TabsControl, menuForItem item: AnyObject) -> NSMenu?
+    @objc optional func tabsControl(_ control: TabsControl, menuForItem item: Any) -> NSMenu?
 
     /**
      If any, returns an icon for the tab, to be placed to the left side of it.
@@ -57,8 +57,11 @@ import AppKit
      
      - returns: An image instance for the icon.
      */
-    @objc optional func tabsControl(_ control: TabsControl, iconForItem item: AnyObject) -> NSImage?
+    @objc optional func tabsControl(_ control: TabsControl, iconForItem item: Any) -> NSImage?
 
+    @objc optional func tabsControl(_ control: TabsControl, closeIconForItem item: Any) -> NSImage?
+    
+    @objc optional func tabsControl(_ control: TabsControl, closePositionForItem item: Any) -> ClosePosition
     /**
      If the width of the tab is not large enough to draw the title, it is possible to provide here an alternate
      icon to replace it. The threshold at which one switch between the title and the icon is computed individually
@@ -69,7 +72,7 @@ import AppKit
      
      - returns:  An image instance for the alternate icon.
      */
-    @objc optional func tabsControl(_ control: TabsControl, titleAlternativeIconForItem item: AnyObject) -> NSImage?
+    @objc optional func tabsControl(_ control: TabsControl, titleAlternativeIconForItem item: Any) -> NSImage?
 }
 
 @objc public protocol TabsControlDelegate: NSControlTextEditingDelegate {
@@ -81,7 +84,7 @@ import AppKit
      *
      *  - returns: A boolean value indicating whether the tab can be selected or not.
      */
-    @objc optional func tabsControl(_ control: TabsControl, canSelectItem item: AnyObject) -> Bool
+    @objc optional func tabsControl(_ control: TabsControl, canSelectItem item: Any) -> Bool
 
     /**
      *  If implemented, the delegate is informed that the selected tab did change.
@@ -90,7 +93,7 @@ import AppKit
      *  - parameter tabControl: The instance of the tabs control.
      *  - parameter item:       The item representing the selected tab.
      */
-    @objc optional func tabsControlDidChangeSelection(_ control: TabsControl, item: AnyObject)
+    @objc optional func tabsControlDidChangeSelection(_ control: TabsControl, item: Any)
 
     /**
      *  Return `true` if the tab is allowed to be reordered (by being dragged with the mouse).
@@ -101,7 +104,7 @@ import AppKit
      *
      *  - returns: A boolean value indicating whether the tab can be reordered or not.
      */
-    @objc optional func tabsControl(_ control: TabsControl, canReorderItem item: AnyObject) -> Bool
+    @objc optional func tabsControl(_ control: TabsControl, canReorderItem item: Any) -> Bool
 
     /**
      *  If implemented, the delegate is informed that the tabs have been reordered. It is the delegate responsability
@@ -110,7 +113,7 @@ import AppKit
      *  - parameter tabControl: The instance of the tabs control.
      *  - parameter items:      The array the items following the new orders.
      */
-    @objc optional func tabsControl(_ control: TabsControl, didReorderItems items: [AnyObject])
+    @objc optional func tabsControl(_ control: TabsControl, didReorderItems items: [Any])
 
     /**
      *  Return `true` if you allow the editing of the title of the tab. By default, titles are not editable.
@@ -121,7 +124,7 @@ import AppKit
      *
      *  - returns: A boolean value indicating whether the tab title can be edited or not.
      */
-    @objc optional func tabsControl(_ control: TabsControl, canEditTitleOfItem item: AnyObject) -> Bool
+    @objc optional func tabsControl(_ control: TabsControl, canEditTitleOfItem item: Any) -> Bool
 
     /**
      *  If implemented, the delegate is informed that the tab has been renamed to the given title. Again, it is the
@@ -131,5 +134,9 @@ import AppKit
      *  - parameter newTitle:   The new title value.
      *  - parameter item:       The item representing the given tab.
      */
-    @objc optional func tabsControl(_ control: TabsControl, setTitle newTitle: String, forItem item: AnyObject)
+    @objc optional func tabsControl(_ control: TabsControl, setTitle newTitle: String, forItem item: Any)
+    
+    @objc optional func tabsControl(_ control: TabsControl, canCloseItem item: Any) -> Bool
+    
+    @objc optional func tabsControl(_ control: TabsControl, didCloseItem item: Any)
 }

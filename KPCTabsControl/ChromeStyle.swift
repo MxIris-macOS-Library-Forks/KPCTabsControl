@@ -18,7 +18,7 @@ public struct ChromeStyle: ThemedStyle {
         self.tabButtonWidth = tabButtonWidth
     }
 
-    public func iconFrames(tabRect rect: NSRect) -> IconFrames {
+    public func iconFrames(tabRect rect: NSRect, closePosition: ClosePosition?) -> IconFrames {
 
         let paddedHeight = PaddedHeight.fromFrame(rect)
         let topPadding = paddedHeight.topPadding
@@ -34,7 +34,7 @@ public struct ChromeStyle: ThemedStyle {
         )
     }
 
-    public func titleRect(title: NSAttributedString, inBounds rect: NSRect, showingIcon: Bool) -> NSRect {
+    public func titleRect(title: NSAttributedString, inBounds rect: NSRect, showingIcon: Bool, closePosition: ClosePosition?) -> NSRect {
         let paddedHeight = PaddedHeight.fromFrame(rect)
         // Left border is angled at 45˚, so it grows proportionally wider
         let iconOffset = showingIcon ? paddedHeight.iconHeight + 4 : 0.0
