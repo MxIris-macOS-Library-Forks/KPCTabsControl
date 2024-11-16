@@ -177,6 +177,8 @@ open class TabsControl: NSControl, NSTextDelegate {
             if let canClose = delegate?.tabsControl?(self, canCloseItem: item), canClose {
                 button.closeIcon = dataSource.tabsControl?(self, closeIconForItem: item)
                 button.closePosition = dataSource.tabsControl?(self, closePositionForItem: item)
+                button.closeTarget = self
+                button.closeAction = #selector(TabsControl.closeTab(_:))
             }
             button.alternativeTitleIcon = dataSource.tabsControl?(self, titleAlternativeIconForItem: item)
         }
@@ -389,6 +391,51 @@ open class TabsControl: NSControl, NSTextDelegate {
         }
     }
 
+    // MARK: - Close
+    
+    @objc private func closeTab(_ sender: Any?) {
+        guard let button = sender as? TabButton,
+              let item = button.representedObject,
+              delegate?.tabsControl?(self, canCloseItem: item) == true else
+        { return }
+        let buttonIndex = button.index
+        
+        button.removeFromSuperview()
+        
+        let tabButtons = tabButtons
+        
+        layoutTabButtons(nil, animated: true)
+        
+        for (index, tabButton) in tabButtons.enumerated() {
+            tabButton.index = index
+        }
+        
+        delegate?.tabsControl?(self, didCloseItem: item)
+        
+        if buttonIndex == selectedButtonIndex {
+            var nextButtonIndex: Int?
+            if tabButtons.count < 1 {
+                nextButtonIndex = nil
+            } else {
+                if buttonIndex == 0 {
+                    nextButtonIndex = 1
+                } else {
+                    nextButtonIndex = buttonIndex - 1
+                }
+            }
+            if let nextButtonIndex, let nextButton = tabButtons[safe: nextButtonIndex], nextButton.isEnabled {
+                selectedButtonIndex = nextButtonIndex
+            } else {
+                selectedButtonIndex = nil
+            }
+            if let action = action,
+               let target = target {
+                NSApp.sendAction(action, to: target, from: self)
+            }
+            delegate?.tabsControlDidChangeSelection?(self, item: nil)
+        }
+    }
+    
     // MARK: - Selection
 
     @objc private func selectTab(_ sender: Any?) {
@@ -414,7 +461,7 @@ open class TabsControl: NSControl, NSTextDelegate {
 
         if sender is TabButton {
             NotificationCenter.default.post(name: Notification.Name(rawValue: TabsControlSelectionDidChangeNotification), object: self)
-            delegate?.tabsControlDidChangeSelection?(self, item: button.representedObject!)
+            delegate?.tabsControlDidChangeSelection?(self, item: button.representedObject)
         }
 
         guard let currentEvent = NSApp.currentEvent else { return }
@@ -446,7 +493,7 @@ open class TabsControl: NSControl, NSTextDelegate {
         return tabButtons.findFirst { $0.index == index }
     }
 
-    var selectedButtonIndex: Int? {
+    public private(set) var selectedButtonIndex: Int? {
         didSet {
             scrollToSelectedButton()
 

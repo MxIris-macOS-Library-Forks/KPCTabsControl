@@ -100,12 +100,17 @@ class PaneViewController: NSViewController, TabsControlDataSource, TabsControlDe
         true
     }
     
+    func tabsControl(_ control: TabsControl, didCloseItem item: Any) {
+        let item = item as! Item
+        self.items.removeAll { $0 == item }
+    }
+    
     func tabsControl(_ control: TabsControl, closeIconForItem item: Any) -> NSImage? {
         .init(systemSymbolName: "xmark", accessibilityDescription: nil)
     }
     
     func tabsControl(_ control: TabsControl, closePositionForItem item: Any) -> ClosePosition {
-        .left
+        .right
     }
     
     func tabsControl(_ control: TabsControl, setTitle newTitle: String, forItem item: Any) {

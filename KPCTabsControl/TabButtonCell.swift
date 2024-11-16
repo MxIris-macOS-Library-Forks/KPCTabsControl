@@ -77,7 +77,6 @@ class TabButtonCell: NSButtonCell {
         let title = style.attributedTitle(content: self.title, selectionState: selectionState)
         let requiredMinimumWidth = title.size().width + 2.0 * titleMargin
         let titleDrawRect = titleRect(forBounds: rect)
-        print("HasRoom: \(titleDrawRect.width >= requiredMinimumWidth), Title: \(title.string), Rect: \(titleDrawRect)")
         return titleDrawRect.width >= requiredMinimumWidth
     }
 
@@ -90,12 +89,6 @@ class TabButtonCell: NSButtonCell {
         return cellSize
     }
 
-    fileprivate func popupRectWithFrame(_ cellFrame: NSRect) -> NSRect {
-        var popupRect = NSRect.zero
-        popupRect.size = TabButtonCell.popupImage().size
-        popupRect.origin = NSPoint(x: cellFrame.maxX - popupRect.width - 8, y: cellFrame.midY - popupRect.height / 2)
-        return popupRect
-    }
 
     override func trackMouse(with theEvent: NSEvent,
                              in cellFrame: NSRect,
@@ -106,7 +99,7 @@ class TabButtonCell: NSButtonCell {
             in: controlView.superview!.frame,
             of: controlView.superview!
         ) != [] {
-            let popupRect = popupRectWithFrame(cellFrame)
+            let popupRect = style.popupRectWithFrame(cellFrame, closePosition: closePosition)
             let location = controlView.convert(theEvent.locationInWindow, from: nil)
 
             if menu?.items.count > 0 && popupRect.contains(location) {
@@ -125,12 +118,7 @@ class TabButtonCell: NSButtonCell {
 
     override func titleRect(forBounds theRect: NSRect) -> NSRect {
         let title = style.attributedTitle(content: self.title, selectionState: selectionState)
-        var rect = style.titleRect(title: title, inBounds: theRect, showingIcon: showsIcon, closePosition: closePosition)
-        if showsMenu {
-            let popupRect = popupRectWithFrame(theRect)
-            rect.size.width -= popupRect.width + 2 * titleMargin
-        }
-        return rect
+        return style.titleRect(title: title, inBounds: theRect, showingIcon: showsIcon, showingMenu: showsMenu, closePosition: closePosition)
     }
 
     // MARK: - Editing
@@ -192,13 +180,15 @@ class TabButtonCell: NSButtonCell {
     override func drawTitle(_ title: NSAttributedString, withFrame frame: NSRect, in controlView: NSView) -> NSRect {
         let titleRect = self.titleRect(forBounds: frame)
         title.draw(in: titleRect)
+//        NSColor.red.setFill()
+//        titleRect.fill()
         return titleRect
     }
 
     fileprivate func drawPopupButtonWithFrame(_ frame: NSRect) {
         let image = TabButtonCell.popupImage()
         image.draw(
-            in: popupRectWithFrame(frame),
+            in: style.popupRectWithFrame(frame, closePosition: closePosition),
             from: .zero,
             operation: .sourceOver,
             fraction: 1.0,

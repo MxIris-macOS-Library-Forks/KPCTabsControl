@@ -43,27 +43,33 @@ open class TabButton: NSButton {
         set { tabButtonCell.isEditable = newValue }
     }
 
+    var closeTarget: AnyObject?
+
+    var closeAction: Selector?
+
     open var closePosition: ClosePosition? {
         didSet { tabButtonCell.closePosition = closePosition }
     }
-    
+
     open var closeIcon: NSImage? {
         didSet {
             if closeIcon != nil && closeButton == nil {
                 let closeButton = NSButton()
                 closeButton.isBordered = false
+                closeButton.target = self
+                closeButton.action = #selector(closeButtonAction)
                 closeButton.alphaValue = 0
                 addSubview(closeButton)
                 self.closeButton = closeButton
             } else if closeIcon == nil, closeButton != nil {
                 closeButton?.removeFromSuperview()
-                self.closeButton = nil
+                closeButton = nil
             }
             closeButton?.image = closeIcon
             needsDisplay = true
         }
     }
-    
+
     open var icon: NSImage? {
         didSet {
             if icon != nil && iconView == nil {
@@ -128,6 +134,8 @@ open class TabButton: NSButton {
         copy.icon = icon
         copy.closeIcon = closeIcon
         copy.closePosition = closePosition
+        copy.closeTarget = closeTarget
+        copy.closeAction = closeAction
         copy.alternativeTitleIcon = alternativeTitleIcon
         copy.state = state
         return copy
@@ -176,14 +184,18 @@ open class TabButton: NSButton {
         super.updateTrackingAreas()
     }
 
+    open override func mouseMoved(with event: NSEvent) {
+        closeButton?.animator().alphaValue = 1
+    }
+    
     open override func mouseEntered(with theEvent: NSEvent) {
-        super.mouseEntered(with: theEvent)
+//        super.mouseEntered(with: theEvent)
         needsDisplay = true
         closeButton?.animator().alphaValue = 1
     }
 
     open override func mouseExited(with theEvent: NSEvent) {
-        super.mouseExited(with: theEvent)
+//        super.mouseExited(with: theEvent)
         needsDisplay = true
         closeButton?.animator().alphaValue = 0
     }
@@ -241,5 +253,11 @@ open class TabButton: NSButton {
 
     func finishEditing(fieldEditor: NSText, newValue: String) {
         tabButtonCell.finishEditing(fieldEditor: fieldEditor, newValue: newValue)
+    }
+
+    @objc func closeButtonAction() {
+        if let closeAction, let closeTarget {
+            NSApp.sendAction(closeAction, to: closeTarget, from: self)
+        }
     }
 }

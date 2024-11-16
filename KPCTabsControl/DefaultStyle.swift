@@ -9,7 +9,7 @@
 import Cocoa
 
 public enum TitleDefaults {
-    static let alignment = NSTextAlignment.left
+    static let alignment = NSTextAlignment.center
     static let lineBreakMode = NSLineBreakMode.byTruncatingMiddle
 }
 
@@ -48,7 +48,7 @@ extension ThemedStyle {
         var closePadding: CGFloat = 0.0
         if let closePosition, closePosition == .left {
             closeButtonMaxX = closeButtonFrame(tabRect: rect, atPosition: .left).maxX
-            closePadding = titleMargin
+            closePadding = 2.0
         }
         
         return (
@@ -57,41 +57,55 @@ extension ThemedStyle {
         )
     }
 
-    public func titleRect(title: NSAttributedString, inBounds rect: NSRect, showingIcon: Bool, closePosition: ClosePosition?) -> NSRect {
+    public func titleRect(title: NSAttributedString, inBounds bounds: NSRect, showingIcon: Bool, showingMenu: Bool, closePosition: ClosePosition?) -> NSRect {
         let titleSize = title.size()
         let fullWidthRect = NSRect(
-            x: rect.minX,
-            y: rect.midY - titleSize.height / 2.0 - 0.5,
-            width: rect.width,
+            x: bounds.minX,
+            y: bounds.midY - titleSize.height / 2.0 - 0.5,
+            width: bounds.width,
             height: titleSize.height
         )
 
-        return paddedRectForIcon(fullWidthRect, inBounds: rect, showingIcon: showingIcon, closePosition: closePosition)
+        return paddedRectForIcon(fullWidthRect, inBounds: bounds, showingIcon: showingIcon, showingMenu: showingMenu, closePosition: closePosition)
     }
 
-    private func paddedRectForIcon(_ rect: NSRect, inBounds bounds: NSRect, showingIcon: Bool, closePosition: ClosePosition?) -> NSRect {
+    private func paddedRectForIcon(_ rect: NSRect, inBounds bounds: NSRect, showingIcon: Bool, showingMenu: Bool, closePosition: ClosePosition?) -> NSRect {
         if !showingIcon, closePosition == nil {
             return rect
         }
-        let leftPadding: CGFloat
-        let rightPadding: CGFloat
+        var leftPadding: CGFloat
+        var rightPadding: CGFloat
         if showingIcon {
             let iconRect = iconFrames(tabRect: bounds, closePosition: closePosition).iconFrame
             leftPadding = iconRect.maxX + titleMargin
             if let closePosition, closePosition == .right {
-                rightPadding = closeButtonFrame(tabRect: bounds, atPosition: .right).width + titleMargin + 10.0
+                if showingMenu {
+                    rightPadding = popupRectWithFrame(bounds, closePosition: .right).width + closeButtonFrame(tabRect: bounds, atPosition: .right).width + titleMargin * 3
+                } else {
+                    rightPadding = closeButtonFrame(tabRect: bounds, atPosition: .right).width + titleMargin * 2
+                }
             } else {
-                rightPadding = 0
+                if showingMenu {
+                    rightPadding = popupRectWithFrame(bounds, closePosition: closePosition).width + titleMargin * 2
+                } else {
+                    rightPadding = closeButtonFrame(tabRect: bounds, atPosition: .left).width + titleMargin * 2
+                }
             }
         } else if let closePosition {
             let closeButtonFrame = closeButtonFrame(tabRect: bounds, atPosition: closePosition)
             switch closePosition {
             case .left:
                 leftPadding = closeButtonFrame.maxX + titleMargin
-                rightPadding = 0
+                rightPadding = leftPadding
+                if showingMenu {
+                    rightPadding += popupRectWithFrame(bounds, closePosition: closePosition).width + titleMargin
+                }
             case .right:
-                leftPadding = 0
-                rightPadding = closeButtonFrame.width + titleMargin + 10.0
+                rightPadding = closeButtonFrame.width + titleMargin * 2
+                leftPadding = rightPadding
+                if showingMenu {
+                    rightPadding += popupRectWithFrame(bounds, closePosition: closePosition).width + titleMargin
+                }
             }
             
         } else {
@@ -120,6 +134,17 @@ extension ThemedStyle {
                           NSAttributedString.Key.paragraphStyle: paragraphStyle]
 
         return NSAttributedString(string: content, attributes: attributes)
+    }
+    
+    public func popupRectWithFrame(_ cellFrame: NSRect, closePosition: ClosePosition?) -> NSRect {
+        var popupRect = NSRect.zero
+        popupRect.size = TabButtonCell.popupImage().size
+        if let closePosition, closePosition == .right {
+            popupRect.origin = NSPoint(x: closeButtonFrame(tabRect: cellFrame, atPosition: .right).minX - popupRect.width - 5, y: cellFrame.midY - popupRect.height / 2)
+        } else {
+            popupRect.origin = NSPoint(x: cellFrame.maxX - popupRect.width - 5, y: cellFrame.midY - popupRect.height / 2)
+        }
+        return popupRect
     }
 
     // MARK: - Tabs Control

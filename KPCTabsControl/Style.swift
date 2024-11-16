@@ -26,10 +26,10 @@ public protocol Style {
     
     // Tab Button Titles
     func iconFrames(tabRect rect: NSRect, closePosition: ClosePosition?) -> IconFrames
-    func titleRect(title: NSAttributedString, inBounds rect: NSRect, showingIcon: Bool, closePosition: ClosePosition?) -> NSRect
+    func popupRectWithFrame(_ cellFrame: NSRect, closePosition: ClosePosition?) -> NSRect
+    func titleRect(title: NSAttributedString, inBounds rect: NSRect, showingIcon: Bool, showingMenu: Bool, closePosition: ClosePosition?) -> NSRect
     func titleEditorSettings() -> TitleEditorSettings
     func attributedTitle(content: String, selectionState: TabSelectionState) -> NSAttributedString
-    
     // Tabs Control
     var tabsControlRecommendedHeight: CGFloat { get }
     func tabsControlBorderMask() -> BorderMask?

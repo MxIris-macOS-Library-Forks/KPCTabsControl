@@ -93,7 +93,7 @@ import AppKit
      *  - parameter tabControl: The instance of the tabs control.
      *  - parameter item:       The item representing the selected tab.
      */
-    @objc optional func tabsControlDidChangeSelection(_ control: TabsControl, item: Any)
+    @objc optional func tabsControlDidChangeSelection(_ control: TabsControl, item: Any?)
 
     /**
      *  Return `true` if the tab is allowed to be reordered (by being dragged with the mouse).
