@@ -432,7 +432,7 @@ open class TabsControl: NSControl, NSTextDelegate {
                let target = target {
                 NSApp.sendAction(action, to: target, from: self)
             }
-            delegate?.tabsControlDidChangeSelection?(self, item: nil)
+            delegate?.tabsControlDidChangeSelection?(self, item: selectedButton?.representedObject)
         }
     }
     
