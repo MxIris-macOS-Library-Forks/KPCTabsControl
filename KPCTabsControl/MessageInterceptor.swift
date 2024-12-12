@@ -9,8 +9,8 @@
 import Foundation
 
 internal class MessageInterceptor: NSObject {
-    var receiver: NSObject?
-    var middleMan: NSObject?
+    weak var receiver: NSObject?
+    weak var middleMan: NSObject?
 
     override func forwardingTarget(for aSelector: Selector) -> Any? {
         if self.middleMan?.responds(to: aSelector) == true { return self.middleMan }
